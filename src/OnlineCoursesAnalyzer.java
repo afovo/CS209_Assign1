@@ -1,7 +1,16 @@
 import java.io.*;
 import java.nio.charset.StandardCharsets;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 import java.util.stream.Collectors;
+
 
 public class OnlineCoursesAnalyzer {
     ArrayList<Course> courses = new ArrayList<>();
@@ -23,7 +32,8 @@ public class OnlineCoursesAnalyzer {
                     c.courseTitle = parts[3].startsWith("\"")
                             ? parts[3].substring(1, parts[3].length() - 1) : parts[3];
                     c.instructors = parts[4].startsWith("\"")
-                            ? parts[4].substring(1, parts[4].length() - 1).split(", ") : parts[4].split(", ");
+                            ? parts[4].substring(1, parts[4].length() - 1)
+                            .split(", ") : parts[4].split(", ");
                     c.courseSubject = parts[5].startsWith("\"")
                             ? parts[5].substring(1, parts[5].length() - 1) : parts[5];
                     c.year = Integer.parseInt(parts[6]);
@@ -54,19 +64,23 @@ public class OnlineCoursesAnalyzer {
 
     public Map<String, Integer> getPtcpCountByInst() {
         Map<String, Integer> mid =  courses.stream()
-                .collect(Collectors.groupingBy(c -> c.institution, Collectors.summingInt(c -> c.participantCnt)));
+                .collect(Collectors.groupingBy(c -> c.institution,
+                        Collectors.summingInt(c -> c.participantCnt)));
         return mid.entrySet().stream()
                 .sorted(Map.Entry.comparingByKey())
-                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (o, n) -> o, LinkedHashMap::new));
+                .collect(Collectors.toMap(Map.Entry::getKey,
+                        Map.Entry::getValue, (o, n) -> o, LinkedHashMap::new));
     }
 
     public Map<String, Integer> getPtcpCountByInstAndSubject() {
         Map<String, Integer> mid =  courses.stream()
-                .collect(Collectors.groupingBy(c -> c.institution.concat("-").concat(c.courseSubject),
+                .collect(Collectors.groupingBy(c -> c.institution.concat("-")
+                                .concat(c.courseSubject),
                         Collectors.summingInt(c -> c.participantCnt)));
         return mid.entrySet().stream()
                 .sorted(Comparator.comparingInt(c -> -c.getValue()))
-                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (o, n) -> o, LinkedHashMap::new));
+                .collect(Collectors.toMap(Map.Entry::getKey,
+                        Map.Entry::getValue, (o, n) -> o, LinkedHashMap::new));
     }
 
     public Map<String, List<List<String>>> getCourseListOfInstructor() {
@@ -80,9 +94,11 @@ public class OnlineCoursesAnalyzer {
                     i.add(new ArrayList<>());
                     res.put(instructor, i);
                 }
-                if (c.instructors.length > 1 && !res.get(instructor).get(1).contains(c.courseTitle)) {
+                if (c.instructors.length > 1
+                        && !res.get(instructor).get(1).contains(c.courseTitle)) {
                     res.get(instructor).get(1).add(c.courseTitle);
-                } else if (c.instructors.length == 1 && !res.get(instructor).get(0).contains(c.courseTitle)) {
+                } else if (c.instructors.length == 1
+                        && !res.get(instructor).get(0).contains(c.courseTitle)) {
                     res.get(instructor).get(0).add(c.courseTitle);
                 }
             }
@@ -127,7 +143,8 @@ public class OnlineCoursesAnalyzer {
     public List<String> searchCourses(String courseSubject, double
             percentAudited, double totalCourseHours) {
         return courses.stream()
-                .filter(c -> c.courseSubject.toLowerCase(Locale.ROOT).contains(courseSubject.toLowerCase(Locale.ROOT)))
+                .filter(c -> c.courseSubject.toLowerCase(Locale.ROOT)
+                        .contains(courseSubject.toLowerCase(Locale.ROOT)))
                 .filter(c -> c.audited >= percentAudited)
                 .filter(c -> c.totalCourseHours <= totalCourseHours)
                 .map(c -> c.courseTitle)
@@ -151,7 +168,7 @@ public class OnlineCoursesAnalyzer {
         }
         ArrayList<Map.Entry<String, Double>> mappingList = new ArrayList<>(courseRank.entrySet());
         mappingList.sort((e1, e2) -> {
-            if (e1.getValue() < e2.getValue()){
+            if (e1.getValue() < e2.getValue()) {
                 return -1;
             } else if (e1.getValue() > e2.getValue()) {
                 return 1;
